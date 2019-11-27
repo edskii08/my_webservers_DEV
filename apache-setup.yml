@@ -1,5 +1,5 @@
 ---
-- hosts: web1_dev 
+- hosts: all
   name: Install the web server and start it
   become: yes
   vars:
@@ -12,21 +12,21 @@
   tasks:
     - name: Install the apache web server
       yum:
-        name: "{{ item }}"
+        name: "{{ httpd_packages }}"
         state: present
-      with_items: "{{ httpd_packages }}"
       notify: restart apache service
 
-    - name: Generate apache's configuration file from jinga2 template
+    - name: Generate apache's config from jinja2 template
       template:
         src: templates/httpd.conf.j2
         dest: /etc/httpd/conf/httpd.conf
       notify: restart apache service
 
-    - name: Generate a basic homepage from jinga2 template
+    - name: Generate a basic homepage from jinja2 template
       template:
         src: templates/index.html.j2
         dest: /var/www/html/index.html
+        force: yes
 
     - name: Open the firewalld http port
       firewalld:
@@ -35,7 +35,7 @@
         state: enabled
       notify: restart firewalld service
 
-    - name: Start the apache web server
+    - name: start the apache web server
       service:
         name: httpd
         state: started
